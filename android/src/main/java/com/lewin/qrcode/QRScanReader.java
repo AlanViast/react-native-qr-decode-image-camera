@@ -38,29 +38,34 @@ public class QRScanReader extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void readerQR(String fileUrl, Promise promise ) {
-        Result result = scanningImage(fileUrl);
-        if(result == null){
-            promise.reject("404","No related QR code");
-//            result = decodeBarcodeRGB(fileUrl);
-//            if(result == null){
-//                result = decodeBarcodeYUV(fileUrl);
-//                if(result == null){
-//                    promise.reject("404","No related QR code");
-//                }else{
-//                    promise.resolve(result.getText());
-//                }
-//            }else{
-//                promise.resolve(result.getText());
-//            }
+    public void readerQR(String fileUrl, Promise promise) {
+        try {
+            Result result = scanningImage(fileUrl);
+            if (result == null) {
+                // promise.reject("404","No related QR code");
+                result = decodeBarcodeRGB(fileUrl);
+                if (result == null) {
+                    result = decodeBarcodeYUV(fileUrl);
+                    if (result == null) {
+                        promise.reject("404", "No related QR code");
+                    } else {
+                        promise.resolve(result.getText());
+                    }
+                } else {
+                    promise.resolve(result.getText());
+                }
 
-        }else{
-            promise.resolve(result.getText());
+            } else {
+                promise.resolve(result.getText());
+            }
+        } catch (Exception e) {
+            promise.reject("-1", e.getMessage());
         }
     }
 
     /**
      * Method for scanning QR code pictures
+     *
      * @param path
      * @return
      */
@@ -80,11 +85,11 @@ public class QRScanReader extends ReactContextBaseJavaModule {
             sampleSize = 1;
         options.inSampleSize = sampleSize;
         scanBitmap = BitmapFactory.decodeFile(path, options);
-        int width=scanBitmap.getWidth();
-        int height=scanBitmap.getHeight();
-        int[] pixels=new int[width*height];
-        scanBitmap.getPixels(pixels,0,width,0,0,width,height);//Get picture pixels
-        RGBLuminanceSource source = new RGBLuminanceSource(scanBitmap.getWidth(),scanBitmap.getHeight(),pixels);
+        int width = scanBitmap.getWidth();
+        int height = scanBitmap.getHeight();
+        int[] pixels = new int[width * height];
+        scanBitmap.getPixels(pixels, 0, width, 0, 0, width, height);//Get picture pixels
+        RGBLuminanceSource source = new RGBLuminanceSource(scanBitmap.getWidth(), scanBitmap.getHeight(), pixels);
         BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
         QRCodeReader reader = new QRCodeReader();
         try {
